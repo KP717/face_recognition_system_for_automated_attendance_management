@@ -121,7 +121,7 @@ footer {
             padding: 0 2rem;
         }
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 0 2rem;
         }
@@ -355,6 +355,7 @@ footer {
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            margin-top: 2.0rem;
         }
 
         .register-btn:hover {

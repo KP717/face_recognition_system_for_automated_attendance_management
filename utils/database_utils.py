@@ -37,6 +37,7 @@ def init_db():
     conn.close()
 
 def add_student(student_id, name, email, course, photo_filename):
+    
     """Add a new student to the database"""
     try:
         conn = sqlite3.connect('database/attendance.db')

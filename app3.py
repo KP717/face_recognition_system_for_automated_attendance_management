@@ -10,7 +10,6 @@ from werkzeug.utils import secure_filename
 import base64
 import io
 from PIL import Image
-import json
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
@@ -21,101 +20,83 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 os.makedirs('static/uploads', exist_ok=True)
 os.makedirs('face_encodings', exist_ok=True)
 os.makedirs('database', exist_ok=True)
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-UPLOAD_FOLDER = 'static/uploads'
 
 # Import utility functions
 from utils.database_utils import init_db, add_student, get_all_students, mark_student_attendance, get_attendance_by_date, get_student_attendance
 from utils.face_recognition_utils import save_face_encoding, load_face_encodings, recognize_face
 
-
-
-
 # Initialize database
 init_db()
 
-
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
 @app.route('/')
-def index():        
+def index():
+
+    if request.method == 'POST':
+        print(request.form)
+
     return render_template('index.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
 
     if request.method == 'POST':
-        try:
-        
-            student_id = request.form['student_id']
-            student_name = request.form['student_name']
-            student_email = request.form['student_email']
-            student_course = request.form['student_course']
-
-
-            file = None
-            filepath = ""
-            filename = ""
-
-            if 'images' in request.files and request.files['images'] != None:
-                file = request.files['images']
-                if file.filename != '':
-                    filename = secure_filename(f"{student_id}_{file.filename}")
-                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                    file.save(filepath)
-
-
-            if 'captured_images' in request.form and request.form['captured_images'] != '':
-                captured_images = request.form.getlist('captured_images')
-                for i, captured_image in enumerate(captured_images):
-
-                    list  = json.loads(captured_image)
-                    if list[0].startswith('data:image'):
-                        try:
-
-                            header, data = captured_image.split(',', 1)
-                            img_binary = base64.b64decode(data)
-                            filename = f"{student_id}_captured_{i}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
-                            filepath = os.path.join(UPLOAD_FOLDER, filename)
-                            with open(filepath, 'wb') as f:
-                                f.write(img_binary)
-                            
-                        except Exception as e:
-                            print(f"Error processing captured image {i}: {e}")
-
-            if filename != "" and filepath != "":
-
-                if save_face_encoding(filepath, student_id):
-                    # Add student to database
-                    if add_student(student_id, student_name, student_email, student_course, filename):
-                        flash(f'Student {student_name} registered successfully!', 'success')
-                        return redirect(url_for('index'))
-                    else:
-                        flash('Student ID already exists or registration failed', 'error')
-                        return redirect(url_for('register'))
-
-                else:
-                    os.remove(filepath)
-                    flash('No face detected in the image!', 'error')
-                    return redirect(url_for('register'))
-            else:
-                flash('No face image found', 'error')
-                return redirect(url_for('register'))
-
-        
-        except Exception as e:
-            flash('Unable to register!', 'error')
-            print("exception:   ", e)
-            return redirect(url_for('register'))
+        print("form details:  ",request.form)
 
     return render_template('register.html')
 
 @app.route('/mark_attendance')
 def mark_attendance():
     return render_template('mark_attendance.html')
+
+@app.route('/register_student', methods=['POST'])
+def register_student():
+     
+     if request.method == 'POST':
+
+        print("--------------- inside of POST Method ------------------")
+        try:
+        
+            student_id = request.form['student_id']
+            student_name = request.form['student_name']
+            student_email = request.form['student_email']
+            student_course = request.form['student_cource']
+
+            print("request.files:  ",request.form)
+
+            
+            if 'student_images' not in request.files:
+                return jsonify({'error': 'No image file provided'}), 400
+
+            file = request.files['student_images']
+
+            # Check if file is selected
+            if file.filename == '':
+                return jsonify({'error': 'No file selected'}), 400
+        
+            
+            print("request.files:  ",file)
+
+            if file:
+
+                filename = secure_filename(f"{student_id}_{file.filename}")
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(filepath)
+            
+                # Process face encoding
+                if save_face_encoding(filepath, student_id):
+                    # Add student to database
+                    if add_student(student_id, student_name, student_email, student_course, filename):
+                        return jsonify({'success': 'Student registered successfully'}), 200
+                        # return redirect(url_for('index'))
+                    else:
+                        return jsonify({'error': 'Error saving student data'}), 401
+                else:
+                    os.remove(filepath)  # Remove uploaded file if face not detected
+                    return jsonify({'error': 'No face detected in the image!'}), 400
+        
+        except Exception as e:
+            return jsonify({'error': 'Exception while registring student!' +e}), 400
+
 
 @app.route('/capture_attendance', methods=['POST'])
 def capture_attendance():
