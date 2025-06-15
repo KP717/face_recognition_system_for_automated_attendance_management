@@ -1,0 +1,2 @@
+# face_recognition_system_for_automated_attendance_management
+A face recognition system to automate attendance management.
