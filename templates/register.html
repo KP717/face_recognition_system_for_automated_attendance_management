@@ -166,11 +166,6 @@
         updateImagesOnUI();
 
         showStatus(`Image ${capturedImages.length} captured!`, 'success');
-
-        if (capturedImages.length >= 1) {
-            captureBtn.disabled = true;
-            showStatus('You can capture max 1 images', 'success');
-        }
     }
 
     function retakeImage() {
@@ -196,6 +191,13 @@
             `;
             capturedImagesContainer.appendChild(imageContainer);
         });
+
+        if (capturedImages.length == 1) {
+            captureBtn.disabled = true;
+        }else{
+            captureBtn.disabled = false;
+        }
+
     }
 
     function removeImage(index) {
