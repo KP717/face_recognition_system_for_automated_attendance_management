@@ -63,7 +63,7 @@
                         <div class="card-body">
                             <label for="images" class="form-label">Start the camera to capture the image</label>
                             <div class="mb-3">
-                                <video id="video-screen" width="500" height="300" autoplay style="border: 1px solid #ccc;"></video>
+                                <video id="video-screen" width="500" height="300" autoplay style="border: 2px solid #ddd; border-radius: 10px;"></video>
                                 <canvas id="canvas" style="display: none;"></canvas>
                             </div>
                             <div id="statusMessage"></div>
@@ -116,6 +116,8 @@
     const captureBtn = document.getElementById('captureBtn');
     const retakeBtn = document.getElementById('retakeImage');
     const registerBtn = document.getElementById('registerBtn');
+    const images = document.getElementById('images');
+
     const capturedImagesContainer = document.getElementById('capturedImages');
     startCameraBtn.addEventListener('click', startCamera);
     captureBtn.addEventListener('click', captureImage);
@@ -123,6 +125,12 @@
     captureBtn.disabled = true;
 
     async function startCamera() {
+
+        if(images.files.length > 0){
+            console.log("image files exist")
+            return;
+        }
+
         try {
             stream = await navigator.mediaDevices.getUserMedia({ 
                 video: { 
@@ -137,6 +145,7 @@
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
             };
+            images.disabled = true;
 
             startCameraBtn.disabled = true;
             captureBtn.disabled = false;

@@ -25,7 +25,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 UPLOAD_FOLDER = 'static/uploads'
 
 # Import utility functions
-from utils.database_utils import init_db, add_student, get_all_students, mark_student_attendance, get_attendance_by_date, get_student_attendance
+from utils.database_utils import init_db, add_student, delete_students,get_all_students, mark_student_attendance, get_attendance_by_date, get_student_attendance
 from utils.face_recognition_utils import save_face_encoding, load_face_encodings, recognize_face
 
 
@@ -48,6 +48,7 @@ def index():
 def register():
 
     if request.method == 'POST':
+
         try:
         
             student_id = request.form['student_id']

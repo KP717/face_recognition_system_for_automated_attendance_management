@@ -36,6 +36,23 @@ def init_db():
     conn.commit()
     conn.close()
 
+def delete_students():
+    
+    """Add a new student to the database"""
+    try:
+        conn = sqlite3.connect('database/attendance.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            DELETE FROM students
+            ''')
+        
+        conn.commit()
+        conn.close()
+        return True
+    except sqlite3.IntegrityError:
+        return False
+    
 def add_student(student_id, name, email, course, photo_filename):
     
     """Add a new student to the database"""
@@ -53,7 +70,6 @@ def add_student(student_id, name, email, course, photo_filename):
         return True
     except sqlite3.IntegrityError:
         return False
-
 def get_all_students():
     """Get all students from the database"""
     conn = sqlite3.connect('database/attendance.db')
@@ -68,20 +84,16 @@ def get_all_students():
 def mark_student_attendance(student_id, date, time):
     """Mark attendance for a student"""
     try:
-        print("----------- cursor 100 -----------------")
         conn = sqlite3.connect('database/attendance.db')
         cursor = conn.cursor()
-        print("----------- cursor 101 -----------------")
 
         cursor.execute('''
             INSERT INTO attendance (student_id, date, time)
             VALUES (?, ?, ?)
         ''', (student_id, date, time))
-        print("----------- cursor 102 -----------------")
 
         conn.commit()
         conn.close()
-        print("----------- cursor 103 -----------------")
 
         return True
     except sqlite3.IntegrityError:

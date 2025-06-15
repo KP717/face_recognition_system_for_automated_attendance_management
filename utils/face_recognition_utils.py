@@ -8,6 +8,7 @@ import numpy as np
 def save_face_encoding(image_path, student_id):
     """Save face encoding for a student"""
     try:
+
         # Load image
         image = face_recognition.load_image_file(image_path)
         
